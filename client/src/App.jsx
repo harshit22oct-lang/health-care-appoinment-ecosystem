@@ -11,6 +11,8 @@ import Landing      from './pages/public/Landing';
 import Login        from './pages/public/Login';
 import Register     from './pages/public/Register';
 import Reschedule   from './pages/public/Reschedule';
+import PrivacyPolicy from './pages/public/PrivacyPolicy';
+import TermsOfService from './pages/public/TermsOfService';
 
 // Patient pages
 import DoctorDiscovery    from './pages/patient/DoctorDiscovery';
@@ -54,6 +56,8 @@ const AppRoutes = () => {
         <Route path="/doctors"         element={<DoctorDiscovery />} />
         <Route path="/patient/doctors" element={<DoctorDiscovery />} />
         <Route path="/book/:doctorId"  element={<BookingFlow />} />
+        <Route path="/privacy"         element={<PrivacyPolicy />} />
+        <Route path="/terms"           element={<TermsOfService />} />
         <Route path="/login"           element={user ? <Navigate to={`/${user.role}`} replace /> : <Login />} />
         <Route path="/register"        element={user ? <Navigate to={`/${user.role}`} replace /> : <Register />} />
         <Route path="/reschedule"      element={<Reschedule />} />
