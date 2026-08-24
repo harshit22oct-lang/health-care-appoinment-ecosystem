@@ -478,9 +478,9 @@ const previewConflicts = asyncHandler(async (req, res) => {
 });
 
 const aiSearchDoctors = asyncHandler(async (req, res) => {
-  const { query: userQuery } = req.body;
-  if (!userQuery || typeof userQuery !== 'string') {
-    throw ApiError.badRequest('Search query is required.');
+  const userQuery = (req.body.query || req.body.prompt || req.body.message || req.body.symptoms || '').trim();
+  if (!userQuery) {
+    throw ApiError.badRequest('Search query or symptoms prompt is required.');
   }
 
   const aiMatch = await matchSpecialtyForQuery(userQuery);
@@ -547,6 +547,7 @@ const aiSearchDoctors = asyncHandler(async (req, res) => {
 
   ApiResponse.ok(res, {
     aiMatch,
+    recommendedSpecialization: aiMatch.primarySpecialty,
     doctors: combinedDoctors,
     bookableCount: bookableDoctors.length,
     realWorldCount: realClinics.length,
