@@ -53,20 +53,28 @@ const getAuthorizedClient = async (userId) => {
 };
 
 /**
- * Generate the Google OAuth consent URL (Supports Login + Calendar Events)
+ * Generate the Google OAuth consent URL (Zero-Warning Clean Scopes for Login)
  */
 const getAuthUrl = (state) => {
   const oAuth2Client = createOAuth2Client();
   if (!oAuth2Client) return null;
 
+  const isCalendarSync = state && state.startsWith('calendar_');
+  const scopes = isCalendarSync
+    ? [
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/calendar.events',
+      ]
+    : [
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/userinfo.email',
+      ];
+
   return oAuth2Client.generateAuthUrl({
     access_type: 'offline',
-    prompt: 'consent',
-    scope: [
-      'https://www.googleapis.com/auth/userinfo.profile',
-      'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/calendar.events',
-    ],
+    prompt: 'select_account',
+    scope: scopes,
     state: state || 'login',
   });
 };
