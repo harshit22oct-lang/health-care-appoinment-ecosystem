@@ -53,6 +53,7 @@ const AppRoutes = () => {
         <Route path="/"                element={<Landing />} />
         <Route path="/doctors"         element={<DoctorDiscovery />} />
         <Route path="/patient/doctors" element={<DoctorDiscovery />} />
+        <Route path="/book/:doctorId"  element={<BookingFlow />} />
         <Route path="/login"           element={user ? <Navigate to={`/${user.role}`} replace /> : <Login />} />
         <Route path="/register"        element={user ? <Navigate to={`/${user.role}`} replace /> : <Register />} />
         <Route path="/reschedule"      element={<Reschedule />} />
