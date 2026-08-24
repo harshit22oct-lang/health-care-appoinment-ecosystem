@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Search, Sparkles, X, MapPin,
+  Search, Sparkles, X, MapPin, ShieldCheck, Info,
 } from 'lucide-react';
 import DoctorCard from '../../components/doctor/DoctorCard';
 import LocationSelector, { getStoredCity, setStoredCity, POPULAR_CITIES } from '../../components/common/LocationSelector';
