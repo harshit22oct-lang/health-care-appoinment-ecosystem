@@ -7,6 +7,9 @@ const { body } = require('express-validator');
 const asyncHandler = require('../utils/asyncHandler');
 const ApiResponse = require('../utils/ApiResponse');
 const authService = require('../services/authService');
+const jwt = require('jsonwebtoken');
+const env = require('../config/env');
+const logger = require('../utils/logger');
 const { getAuthUrl, handleOAuthCallback } = require('../services/calendarService');
 
 // Validation chains
@@ -26,18 +29,24 @@ const loginValidation = [
 
 // Handlers
 const register = asyncHandler(async (req, res) => {
-  const result = await authService.registerUser(req.body);
-  ApiResponse.created(res, result, 'Account created successfully.');
-});
-
-const login = asyncHandler(async (req, res) => {
-  const result = await authService.loginUser(req.body);
-  // Set HTTP-only cookie for web clients, also return token in body for mobile/SPA
+  const result = await authService.register(req.body);
   res.cookie('token', result.token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+  ApiResponse.created(res, result, 'Registered successfully.');
+});
+
+const login = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+  const result = await authService.login(email, password);
+  res.cookie('token', result.token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   });
   ApiResponse.ok(res, result, 'Logged in successfully.');
 });
@@ -57,6 +66,14 @@ const updateProfile = asyncHandler(async (req, res) => {
   ApiResponse.ok(res, result, 'Profile updated successfully.');
 });
 
+const googleLoginStart = asyncHandler(async (req, res) => {
+  const authUrl = getAuthUrl('login');
+  if (!authUrl) {
+    return res.redirect(`${env.CLIENT_URL || 'https://health-care-appoinment-ecosystem.vercel.app'}/login?error=google_not_configured`);
+  }
+  res.redirect(authUrl);
+});
+
 const googleCalendarConnect = asyncHandler(async (req, res) => {
   const authUrl = getAuthUrl(req.user._id.toString());
   if (!authUrl) {
@@ -66,9 +83,34 @@ const googleCalendarConnect = asyncHandler(async (req, res) => {
 });
 
 const googleCalendarCallback = asyncHandler(async (req, res) => {
-  const { code, state: userId } = req.query;
-  await handleOAuthCallback(code, userId);
-  res.redirect(`${process.env.CLIENT_URL}/patient/dashboard?calendar=connected`);
+  const { code, state } = req.query;
+  const clientUrl = env.CLIENT_URL || 'https://health-care-appoinment-ecosystem.vercel.app';
+
+  if (!code) {
+    return res.redirect(`${clientUrl}/login?error=google_auth_failed`);
+  }
+
+  try {
+    const { user } = await handleOAuthCallback(code, state);
+    if (!user) {
+      return res.redirect(`${clientUrl}/login?error=google_auth_failed`);
+    }
+
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      env.JWT_SECRET,
+      { expiresIn: env.JWT_EXPIRES_IN }
+    );
+
+    if (state === 'login') {
+      res.redirect(`${clientUrl}/login?googleToken=${token}&role=${user.role}&name=${encodeURIComponent(user.firstName)}`);
+    } else {
+      res.redirect(`${clientUrl}/patient?calendar=connected`);
+    }
+  } catch (err) {
+    logger.error(`[AuthController] Google OAuth Callback failed: ${err.message}`);
+    res.redirect(`${clientUrl}/login?error=google_auth_error`);
+  }
 });
 
 module.exports = {
@@ -77,6 +119,7 @@ module.exports = {
   logout,
   getMe,
   updateProfile,
+  googleLoginStart,
   googleCalendarConnect,
   googleCalendarCallback,
   registerValidation,

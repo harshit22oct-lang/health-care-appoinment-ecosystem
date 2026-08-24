@@ -5,6 +5,7 @@
 'use strict';
 
 const { google } = require('googleapis');
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const env = require('../config/env');
 const logger = require('../utils/logger');
@@ -52,7 +53,7 @@ const getAuthorizedClient = async (userId) => {
 };
 
 /**
- * Generate the Google OAuth consent URL
+ * Generate the Google OAuth consent URL (Supports Login + Calendar Events)
  */
 const getAuthUrl = (state) => {
   const oAuth2Client = createOAuth2Client();
@@ -61,22 +62,62 @@ const getAuthUrl = (state) => {
   return oAuth2Client.generateAuthUrl({
     access_type: 'offline',
     prompt: 'consent',
-    scope: ['https://www.googleapis.com/auth/calendar.events'],
-    state,
+    scope: [
+      'https://www.googleapis.com/auth/userinfo.profile',
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/calendar.events',
+    ],
+    state: state || 'login',
   });
 };
 
 /**
- * Exchange auth code for tokens and save to user record
+ * Exchange auth code for tokens and handle Google Login + Calendar
  */
-const handleOAuthCallback = async (code, userId) => {
+const handleOAuthCallback = async (code, state) => {
   const oAuth2Client = createOAuth2Client();
-  if (!oAuth2Client) throw new Error('Google Calendar not configured');
+  if (!oAuth2Client) throw new Error('Google OAuth is not configured');
 
   const { tokens } = await oAuth2Client.getToken(code);
-  await User.findByIdAndUpdate(userId, { calendarTokens: tokens });
-  logger.info(`[CalendarService] Calendar connected for user ${userId}`);
-  return tokens;
+  oAuth2Client.setCredentials(tokens);
+
+  // Fetch Google User Profile info
+  const oauth2 = google.oauth2({ version: 'v2', auth: oAuth2Client });
+  const userInfo = await oauth2.userinfo.get();
+  const { email, given_name, family_name } = userInfo.data;
+
+  let user = null;
+  // If state was a specific userId (connecting from dashboard)
+  if (state && mongoose.Types.ObjectId.isValid(state)) {
+    user = await User.findById(state);
+    if (user) {
+      user.calendarTokens = tokens;
+      await user.save();
+    }
+  }
+
+  // If logging in via Google
+  if (!user && email) {
+    user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      // Auto-register new patient account via Google
+      user = await User.create({
+        firstName: given_name || 'Patient',
+        lastName: family_name || 'User',
+        email: email.toLowerCase(),
+        password: `GoogleAuth@${Date.now()}`,
+        role: 'patient',
+        isEmailVerified: true,
+        calendarTokens: tokens,
+      });
+    } else {
+      user.calendarTokens = tokens;
+      await user.save();
+    }
+  }
+
+  logger.info(`[CalendarService] Google OAuth success for user: ${email || user?._id}`);
+  return { user, tokens };
 };
 
 /**

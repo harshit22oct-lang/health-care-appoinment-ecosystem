@@ -17,6 +17,28 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const googleToken = params.get('googleToken');
+    const role = params.get('role') || 'patient';
+    const name = params.get('name') || 'User';
+    const oauthError = params.get('error');
+
+    if (googleToken) {
+      localStorage.setItem('hs_token', googleToken);
+      addToast(`Signed in with Google as ${name}!`, 'success');
+      window.location.href = `/${role}`;
+    } else if (oauthError) {
+      setError('Google Sign-In failed or was cancelled. Please try again.');
+    }
+  }, [location.search]);
+
+  const handleGoogleSignIn = () => {
+    const backendUrl = import.meta.env.VITE_API_URL || 'https://healthsync-api-yqrn.onrender.com';
+    const cleanBackend = backendUrl.replace(/\/+$/, '').replace(/\/api\/v1$/, '');
+    window.location.href = `${cleanBackend}/api/v1/auth/google/login`;
+  };
+
   const handleLogin = async (email, password) => {
     setError('');
     setLoading(true);
@@ -245,7 +267,52 @@ export default function Login() {
             </button>
           </form>
 
-          <p style={{ textAlign: 'center', marginTop: '18px', fontSize: '13px', color: '#64748B', marginBottom: 0 }}>
+          {/* Google 1-Click Sign-In */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '16px 0 12px 0' }}>
+            <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
+            <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase' }}>or</span>
+            <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            style={{
+              width: '100%',
+              height: '44px',
+              background: '#FFFFFF',
+              border: '1.5px solid #E2E8F0',
+              borderRadius: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              fontSize: '13px',
+              fontWeight: 700,
+              color: '#1E293B',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = '#CBD5E1';
+              e.currentTarget.style.background = '#F8FAFC';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = '#E2E8F0';
+              e.currentTarget.style.background = '#FFFFFF';
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            <span>Continue with Google</span>
+          </button>
+
+          <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '13px', color: '#64748B', marginBottom: 0 }}>
             Don't have an account?{' '}
             <Link to="/register" style={{ color: '#0284C7', fontWeight: 700, textDecoration: 'none' }}>
               Create a free Patient Account →
