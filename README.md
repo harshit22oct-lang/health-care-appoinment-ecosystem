@@ -1,4 +1,11 @@
-# HealthSync — Healthcare Appointment & Intelligent Follow-up Platform
+# 🏥 HealthSync — Healthcare Appointment & Intelligent Follow-up Platform
+
+[![Live Frontend](https://img.shields.io/badge/Frontend-Vercel%20Live-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://health-care-appointment-ecosystem.vercel.app)
+[![Live Backend](https://img.shields.io/badge/Backend%20API-Render%20Live-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://healthsync-api-yqrn.onrender.com)
+[![Architecture Blueprint](https://img.shields.io/badge/Blueprint-PDF%20Spec-4F46E5?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)](https://github.com/harshit22oct-lang/health-care-appoinment-ecosystem/blob/main/MASTER_BLUEPRINT_IMPLEMENTATION_PLAN.pdf)
+
+> **Live Frontend**: [https://health-care-appointment-ecosystem.vercel.app](https://health-care-appointment-ecosystem.vercel.app)  
+> **Live API**: [https://healthsync-api-yqrn.onrender.com](https://healthsync-api-yqrn.onrender.com)
 
 ## 🏗️ Architecture Overview
 
