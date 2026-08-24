@@ -37,14 +37,15 @@ module.exports = {
   LLM_CIRCUIT_BREAKER_THRESHOLD: parseInt(optional('LLM_CIRCUIT_BREAKER_THRESHOLD', '3'), 10),
   LLM_CIRCUIT_BREAKER_WINDOW_MS: parseInt(optional('LLM_CIRCUIT_BREAKER_WINDOW_MS', '60000'), 10),
 
-  // Email
+  // Email (Resend API or SMTP)
+  RESEND_API_KEY: optional('RESEND_API_KEY', ''),
   SMTP_HOST: optional('SMTP_HOST', ''),
   SMTP_PORT: parseInt(optional('SMTP_PORT', '587'), 10),
   SMTP_SECURE: optional('SMTP_SECURE', 'false') === 'true',
   SMTP_USER: optional('SMTP_USER', ''),
   SMTP_PASS: optional('SMTP_PASS', ''),
   EMAIL_FROM_NAME: optional('EMAIL_FROM_NAME', 'HealthSync Platform'),
-  EMAIL_FROM_ADDRESS: optional('EMAIL_FROM_ADDRESS', 'noreply@healthsync.com'),
+  EMAIL_FROM_ADDRESS: optional('EMAIL_FROM_ADDRESS', 'onboarding@resend.dev'),
 
   // Google Calendar
   GOOGLE_CLIENT_ID: optional('GOOGLE_CLIENT_ID', ''),

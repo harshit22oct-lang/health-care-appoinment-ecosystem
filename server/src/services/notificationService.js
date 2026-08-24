@@ -42,9 +42,45 @@ const getTransporter = () => {
 };
 
 /**
- * Send an email directly (used by retry worker)
+ * Send an email directly (supports Resend API & SMTP Transporter)
  */
 const sendEmail = async ({ to, subject, html }) => {
+  const resendKey = (env.RESEND_API_KEY || process.env.RESEND_API_KEY || '').trim();
+
+  // 1. Direct Resend API (High deliverability, no SMTP port blockage)
+  if (resendKey) {
+    try {
+      const fromAddress = env.EMAIL_FROM_ADDRESS && env.EMAIL_FROM_ADDRESS.includes('@')
+        ? `"${env.EMAIL_FROM_NAME || 'HealthSync Platform'}" <${env.EMAIL_FROM_ADDRESS}>`
+        : `"${env.EMAIL_FROM_NAME || 'HealthSync Platform'}" <onboarding@resend.dev>`;
+
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: fromAddress,
+          to: [to],
+          subject,
+          html,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || `Resend API returned status ${res.status}`);
+      }
+      logger.info(`[NotificationService:Resend] Email delivered to ${to}, ID: ${data.id}`);
+      return { messageId: data.id, resend: true };
+    } catch (err) {
+      logger.error(`[NotificationService:Resend] Failed: ${err.message}`);
+      throw err;
+    }
+  }
+
+  // 2. SMTP Transporter fallback
   const mailer = getTransporter();
   const result = await mailer.sendMail({
     from: `"${env.EMAIL_FROM_NAME}" <${env.EMAIL_FROM_ADDRESS}>`,
