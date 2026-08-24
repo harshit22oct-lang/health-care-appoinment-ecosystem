@@ -2,8 +2,10 @@
 // SERVICES — Centralised API client
 // ============================================================
 
-const BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
-
+const rawUrl = (import.meta.env.VITE_API_URL || '').trim().replace(/\/+$/, '');
+const BASE_URL = rawUrl
+  ? (rawUrl.includes('/api/v1') ? rawUrl : `${rawUrl}/api/v1`)
+  : '/api/v1';
 
 const getAuthHeader = () => {
   const token = localStorage.getItem('hs_token');

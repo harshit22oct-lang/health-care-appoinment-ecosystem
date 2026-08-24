@@ -68,8 +68,10 @@ const createApp = () => {
     app.use(morgan('combined'));
   }
 
-  // ── API Routes ────────────────────────────────────────────
+  // ── API Routes (Support /api/v1, /api, and root) ─────────
   app.use('/api/v1', routes);
+  app.use('/api', routes);
+  app.use('/', routes);
 
   // ── Root ─────────────────────────────────────────────────
   app.get('/', (req, res) => {
