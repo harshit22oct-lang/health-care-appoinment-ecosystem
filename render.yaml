@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: pulsecare-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node src/server.js
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 30d
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-1.5-flash
+      - key: LLM_TIMEOUT_MS
+        value: 10000
+      - key: LLM_CIRCUIT_BREAKER_THRESHOLD
+        value: 3
+      - key: LLM_CIRCUIT_BREAKER_WINDOW_MS
+        value: 60000
+      - key: SLOT_HOLD_TTL_MINUTES
+        value: 5
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 100
+      - key: CLIENT_URL
+        sync: false
