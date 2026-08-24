@@ -25,8 +25,21 @@ const createApp = () => {
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   }));
 
+  const allowedOrigins = env.CLIENT_URL ? env.CLIENT_URL.split(',').map(s => s.trim()) : ['http://localhost:5173'];
+
   app.use(cors({
-    origin: env.CLIENT_URL,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.includes('*') ||
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        origin.includes('localhost')
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Allow demo cross-origin access
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
