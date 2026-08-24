@@ -29,7 +29,7 @@ const loginValidation = [
 
 // Handlers
 const register = asyncHandler(async (req, res) => {
-  const result = await authService.register(req.body);
+  const result = await authService.registerUser(req.body);
   res.cookie('token', result.token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -41,7 +41,7 @@ const register = asyncHandler(async (req, res) => {
 
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  const result = await authService.login(email, password);
+  const result = await authService.loginUser({ email, password });
   res.cookie('token', result.token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

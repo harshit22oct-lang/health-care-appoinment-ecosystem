@@ -169,4 +169,12 @@ const updateProfile = async (userId, updates) => {
   return user.toPublicJSON();
 };
 
-module.exports = { registerUser, loginUser, getCurrentUser, updateProfile, signToken };
+module.exports = {
+  registerUser,
+  register: registerUser,
+  loginUser,
+  login: (emailOrObj, pw) => typeof emailOrObj === 'object' ? loginUser(emailOrObj) : loginUser({ email: emailOrObj, password: pw }),
+  getCurrentUser,
+  updateProfile,
+  signToken,
+};
