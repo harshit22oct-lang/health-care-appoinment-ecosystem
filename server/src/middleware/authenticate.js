@@ -24,6 +24,7 @@ const authenticate = asyncHandler(async (req, res, next) => {
     throw ApiError.unauthorized('Access denied. No token provided.');
   }
 
+  try {
     const decoded = jwt.verify(token, env.JWT_SECRET);
     const targetUserId = decoded.id || decoded.userId || decoded._id;
     
