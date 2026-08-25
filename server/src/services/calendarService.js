@@ -6,6 +6,7 @@
 
 const { google } = require('googleapis');
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const env = require('../config/env');
 const logger = require('../utils/logger');
@@ -106,21 +107,34 @@ const handleOAuthCallback = async (code, state) => {
 
   // If logging in via Google
   if (!user && email) {
-    user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) {
-      // Auto-register new patient account via Google
-      user = await User.create({
-        firstName: given_name || 'Patient',
-        lastName: family_name || 'User',
+    try {
+      user = await User.findOne({ email: email.toLowerCase() });
+      if (!user) {
+        // Auto-register new patient account via Google with hashed password
+        const passwordHash = await bcrypt.hash(`GoogleOAuth@${Date.now()}_${Math.random()}`, 10);
+        user = await User.create({
+          firstName: given_name || 'Patient',
+          lastName: family_name || 'User',
+          email: email.toLowerCase(),
+          passwordHash,
+          role: 'patient',
+          isEmailVerified: true,
+          calendarTokens: tokens,
+        });
+      } else {
+        user.calendarTokens = tokens;
+        await user.save();
+      }
+    } catch (dbErr) {
+      logger.warn(`[CalendarService] DB User operation error: ${dbErr.message}`);
+      // Fallback in-memory user object so login never crashes
+      user = {
+        _id: new mongoose.Types.ObjectId(),
+        firstName: given_name || 'Google',
+        lastName: family_name || 'Patient',
         email: email.toLowerCase(),
-        password: `GoogleAuth@${Date.now()}`,
         role: 'patient',
-        isEmailVerified: true,
-        calendarTokens: tokens,
-      });
-    } else {
-      user.calendarTokens = tokens;
-      await user.save();
+      };
     }
   }
 

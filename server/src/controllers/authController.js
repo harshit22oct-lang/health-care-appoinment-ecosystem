@@ -84,7 +84,11 @@ const googleCalendarConnect = asyncHandler(async (req, res) => {
 
 const googleCalendarCallback = asyncHandler(async (req, res) => {
   const { code, state } = req.query;
-  const clientUrl = env.CLIENT_URL || 'https://health-care-appoinment-ecosystem.vercel.app';
+  let clientUrl = (env.CLIENT_URL || '').trim();
+  if (!clientUrl || !clientUrl.startsWith('http') || clientUrl.includes('*') || clientUrl.includes('localhost')) {
+    clientUrl = 'https://health-care-appoinment-ecosystem.vercel.app';
+  }
+  clientUrl = clientUrl.replace(/\/+$/, '');
 
   if (!code) {
     return res.redirect(`${clientUrl}/login?error=google_auth_failed`);
@@ -103,7 +107,7 @@ const googleCalendarCallback = asyncHandler(async (req, res) => {
     );
 
     if (state === 'login') {
-      res.redirect(`${clientUrl}/login?googleToken=${token}&role=${user.role}&name=${encodeURIComponent(user.firstName)}`);
+      res.redirect(`${clientUrl}/login?googleToken=${token}&role=${user.role}&name=${encodeURIComponent(user.firstName || 'User')}`);
     } else {
       res.redirect(`${clientUrl}/patient?calendar=connected`);
     }
