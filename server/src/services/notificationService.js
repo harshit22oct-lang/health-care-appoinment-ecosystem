@@ -170,7 +170,7 @@ const templates = {
       timeZone: 'Asia/Kolkata',
       weekday: 'long',
       year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
@@ -183,32 +183,32 @@ const templates = {
     const googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${calTitle}&details=${calDetails}&dates=${startIso}/${endIso}`;
 
     return {
-      subject: `✅ Appointment Confirmed (ID: ${appointmentId}) — Dr. ${doctorName}`,
+      subject: `Confirmed: Consultation with Dr. ${doctorName} (${appointmentId})`,
       html: `
         <!DOCTYPE html>
-        <html>
+        <html lang="en">
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Appointment Confirmation</title>
         </head>
-        <body style="margin: 0; padding: 24px 0; background-color: #F1F5F9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-          <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 620px; margin: 0 auto; background-color: #FFFFFF; border-radius: 18px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.06); border: 1px solid #E2E8F0;">
+        <body style="margin: 0; padding: 40px 16px; background-color: #F8FAFC; font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #1E293B;">
+          <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 560px; margin: 0 auto; background-color: #FFFFFF; border-radius: 12px; border: 1px solid #E2E8F0; overflow: hidden;">
             
-            <!-- ── HEADER WITH HEALTHSYNC LOGO & BETA BADGE ── -->
+            <!-- ── MINIMAL STRIPE-STYLE BRAND BAR ── -->
             <tr>
-              <td style="padding: 28px 36px; background-color: #FFFFFF; border-bottom: 1.5px solid #F1F5F9;">
+              <td style="padding: 32px 40px 24px 40px; border-bottom: 1px solid #F1F5F9;">
                 <table width="100%" border="0" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td align="left">
-                      <div style="display: inline-flex; align-items: center;">
-                        <span style="font-size: 24px; color: #0284C7; font-weight: 900; letter-spacing: -0.5px;">⚡ Health<span style="color: #0F172A;">Sync</span></span>
-                        <span style="margin-left: 10px; background-color: #FEF3C7; color: #92400E; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px; border: 1px solid #FDE68A; text-transform: uppercase;">BETA V1.2</span>
-                      </div>
+                    <td align="left" style="vertical-align: middle;">
+                      <span style="font-size: 18px; font-weight: 800; color: #0F172A; letter-spacing: -0.4px;">
+                        Health<span style="color: #0284C7;">Sync</span>
+                      </span>
+                      <span style="display: inline-block; margin-left: 8px; vertical-align: middle; font-size: 10px; font-weight: 700; background: #F1F5F9; color: #475569; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.04em;">BETA V1.2</span>
                     </td>
-                    <td align="right">
-                      <span style="background-color: #ECFDF5; color: #059669; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 20px; border: 1px solid #A7F3D0;">
-                        ● CONFIRMED
+                    <td align="right" style="vertical-align: middle;">
+                      <span style="font-size: 12px; font-weight: 600; color: #059669; background: #ECFDF5; padding: 4px 10px; border-radius: 20px; border: 1px solid #A7F3D0;">
+                        Confirmed
                       </span>
                     </td>
                   </tr>
@@ -216,109 +216,107 @@ const templates = {
               </td>
             </tr>
 
-            <!-- ── HERO BANNER ── -->
+            <!-- ── BODY CONTENT ── -->
             <tr>
-              <td style="padding: 32px 36px 20px 36px; background: linear-gradient(135deg, #0284C7 0%, #0D9488 100%); color: #FFFFFF;">
-                <h1 style="margin: 0 0 6px 0; font-size: 22px; font-weight: 800; color: #FFFFFF;">Appointment Confirmed! 🎉</h1>
-                <p style="margin: 0; font-size: 14px; color: rgba(255,255,255,0.9); line-height: 1.5;">
-                  Dear <strong>${patientName}</strong>, your in-clinic consultation has been successfully scheduled and reserved in the hospital queue.
-                </p>
-              </td>
-            </tr>
-
-            <!-- ── ITINERARY & FINANCIAL BREAKDOWN ── -->
-            <tr>
-              <td style="padding: 28px 36px;">
+              <td style="padding: 36px 40px 28px 40px;">
                 
-                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px; margin-bottom: 24px;">
+                <h1 style="margin: 0 0 10px 0; font-size: 22px; font-weight: 700; color: #0F172A; letter-spacing: -0.3px; line-height: 1.3;">
+                  Your appointment is confirmed.
+                </h1>
+                <p style="margin: 0 0 28px 0; font-size: 14px; color: #475569; line-height: 1.5;">
+                  Hi ${patientName}, you are confirmed for an in-clinic medical consultation with <strong>Dr. ${doctorName}</strong>. A summary and calendar invitation are provided below.
+                </p>
+
+                <!-- ── STRIPE-STYLE RECEIPT & SCHEDULE CARD ── -->
+                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; margin-bottom: 28px;">
                   <tr>
-                    <td width="50%" style="vertical-align: top; padding-bottom: 16px;">
-                      <p style="margin: 0; font-size: 11px; color: #64748B; font-weight: 700; text-transform: uppercase;">Appointment Reference ID</p>
-                      <p style="margin: 3px 0 0 0; font-size: 15px; font-weight: 800; color: #0284C7;">${appointmentId}</p>
-                    </td>
-                    <td width="50%" style="vertical-align: top; padding-bottom: 16px;">
-                      <p style="margin: 0; font-size: 11px; color: #64748B; font-weight: 700; text-transform: uppercase;">Consultation Fee</p>
-                      <p style="margin: 3px 0 0 0; font-size: 15px; font-weight: 800; color: #0F172A;">₹${consultationFee} <span style="font-size: 11px; color: #059669; font-weight: 700;">(OPD Billed)</span></p>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td width="50%" style="vertical-align: top; border-top: 1px solid #E2E8F0; padding-top: 14px;">
-                      <p style="margin: 0; font-size: 11px; color: #64748B; font-weight: 700; text-transform: uppercase;">Consulting Specialist</p>
-                      <p style="margin: 3px 0 0 0; font-size: 14px; font-weight: 800; color: #0F172A;">Dr. ${doctorName}</p>
-                      <p style="margin: 1px 0 0 0; font-size: 12px; color: #64748B;">${specialization}</p>
-                    </td>
-                    <td width="50%" style="vertical-align: top; border-top: 1px solid #E2E8F0; padding-top: 14px;">
-                      <p style="margin: 0; font-size: 11px; color: #64748B; font-weight: 700; text-transform: uppercase;">Date & Scheduled Time</p>
-                      <p style="margin: 3px 0 0 0; font-size: 13px; font-weight: 800; color: #0F172A;">${formattedDate}</p>
-                      <p style="margin: 1px 0 0 0; font-size: 11px; color: #0284C7; font-weight: 700;">30 Min Duration</p>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td colspan="2" style="border-top: 1px solid #E2E8F0; padding-top: 14px;">
-                      <p style="margin: 0; font-size: 11px; color: #64748B; font-weight: 700; text-transform: uppercase;">Clinic / Center Location</p>
-                      <p style="margin: 3px 0 0 0; font-size: 13px; color: #334155; font-weight: 600;">📍 ${clinicAddress}</p>
+                    <td style="padding: 20px;">
+                      
+                      <!-- Row 1: Doctor & Date -->
+                      <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 16px;">
+                        <tr>
+                          <td width="50%" style="vertical-align: top;">
+                            <div style="font-size: 11px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em;">Doctor</div>
+                            <div style="font-size: 14px; font-weight: 700; color: #0F172A; margin-top: 3px;">Dr. ${doctorName}</div>
+                            <div style="font-size: 12px; color: #64748B; margin-top: 1px;">${specialization}</div>
+                          </td>
+                          <td width="50%" style="vertical-align: top;">
+                            <div style="font-size: 11px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em;">Date & Time</div>
+                            <div style="font-size: 14px; font-weight: 700; color: #0F172A; margin-top: 3px;">${formattedDate}</div>
+                            <div style="font-size: 12px; color: #0284C7; font-weight: 600; margin-top: 1px;">30 min consultation</div>
+                          </td>
+                        </tr>
+                      </table>
+
+                      <!-- Divider -->
+                      <div style="border-top: 1px solid #E2E8F0; margin-bottom: 16px;"></div>
+
+                      <!-- Row 2: Location & Amount -->
+                      <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td width="50%" style="vertical-align: top;">
+                            <div style="font-size: 11px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em;">Location</div>
+                            <div style="font-size: 12px; font-weight: 500; color: #334155; margin-top: 3px; line-height: 1.4;">${clinicAddress}</div>
+                          </td>
+                          <td width="50%" style="vertical-align: top;">
+                            <div style="font-size: 11px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em;">Amount & Ref</div>
+                            <div style="font-size: 14px; font-weight: 700; color: #0F172A; margin-top: 3px;">₹${consultationFee}.00</div>
+                            <div style="font-size: 11px; color: #64748B; margin-top: 1px;">Ref: ${appointmentId}</div>
+                          </td>
+                        </tr>
+                      </table>
+
                     </td>
                   </tr>
                 </table>
 
-                <!-- ── GEMINI AI CLINICAL PRE-VISIT BRIEFING ── -->
-                <div style="background-color: #F0F9FF; border: 1.5px solid #BAE6FD; border-radius: 14px; padding: 20px; margin-bottom: 24px;">
-                  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 10px;">
-                    <tr>
-                      <td align="left">
-                        <span style="font-size: 13px; font-weight: 800; color: #0369A1;">✨ Gemini AI Pre-Visit Clinical Briefing</span>
-                      </td>
-                      <td align="right">
-                        <span style="background-color: #E0F2FE; color: #0284C7; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 4px; text-transform: uppercase;">
-                          ${urgencyLevel} Priority
-                        </span>
-                      </td>
-                    </tr>
-                  </table>
-                  
-                  <p style="margin: 0 0 8px 0; font-size: 12px; color: #0369A1; font-weight: 700;">Chief Complaint Summary:</p>
-                  <p style="margin: 0 0 14px 0; font-size: 13px; color: #334155; line-height: 1.4;">${chiefComplaint}</p>
-
-                  <p style="margin: 0 0 6px 0; font-size: 12px; color: #0369A1; font-weight: 700;">Suggested Questions To Ask Dr. ${doctorName}:</p>
-                  <ul style="margin: 0; padding-left: 18px; color: #334155; font-size: 12px; line-height: 1.6;">
-                    ${suggestedDoctorQuestions.map(q => `<li style="margin-bottom: 4px;">${q}</li>`).join('')}
+                <!-- ── LINEAR-STYLE AI CLINICAL NOTE ── -->
+                <div style="border-left: 2px solid #0284C7; padding-left: 16px; margin-bottom: 32px;">
+                  <div style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 4px; display: flex; align-items: center;">
+                    Gemini AI Clinical Summary · <span style="font-weight: 500; color: #64748B; margin-left: 4px;">${urgencyLevel} Urgency</span>
+                  </div>
+                  <div style="font-size: 13px; color: #475569; line-height: 1.5; margin-bottom: 8px;">
+                    ${chiefComplaint}
+                  </div>
+                  <div style="font-size: 11px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px;">Suggested Briefing Points:</div>
+                  <ul style="margin: 0; padding-left: 16px; font-size: 12px; color: #475569; line-height: 1.6;">
+                    ${suggestedDoctorQuestions.map(q => `<li>${q}</li>`).join('')}
                   </ul>
                 </div>
 
-                <!-- ── CALL TO ACTION BUTTONS ── -->
+                <!-- ── STRIPE / APPLE CLEAN ACTION BUTTONS ── -->
                 <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
                   <tr>
-                    <td align="center" style="padding-right: 6px;">
-                      <a href="${googleCalUrl}" target="_blank" style="display: block; background-color: #0284C7; color: #FFFFFF; font-size: 13px; font-weight: 700; text-decoration: none; padding: 12px 20px; border-radius: 10px; text-align: center;">
-                        📅 Add to Google Calendar
+                    <td>
+                      <a href="${googleCalUrl}" target="_blank" style="display: block; background-color: #0F172A; color: #FFFFFF; font-size: 13px; font-weight: 600; text-align: center; text-decoration: none; padding: 12px 24px; border-radius: 8px; letter-spacing: -0.1px;">
+                        Add to Google Calendar
                       </a>
                     </td>
-                    <td align="center" style="padding-left: 6px;">
-                      <a href="https://health-care-appoinment-ecosystem.vercel.app/patient" target="_blank" style="display: block; background-color: #F8FAFC; color: #0F172A; font-size: 13px; font-weight: 700; text-decoration: none; padding: 12px 20px; border-radius: 10px; text-align: center; border: 1.5px solid #CBD5E1;">
-                        🏥 Open Patient Portal
+                  </tr>
+                  <tr>
+                    <td style="padding-top: 10px; text-align: center;">
+                      <a href="https://health-care-appoinment-ecosystem.vercel.app/patient" target="_blank" style="font-size: 12px; font-weight: 600; color: #0284C7; text-decoration: none;">
+                        Manage in HealthSync Dashboard &rarr;
                       </a>
                     </td>
                   </tr>
                 </table>
 
-                <!-- ── IMPORTANT PATIENT GUIDELINES ── -->
-                <div style="border-top: 1px solid #E2E8F0; padding-top: 18px;">
-                  <p style="margin: 0 0 4px 0; font-size: 12px; color: #0F172A; font-weight: 700;">Important Visit Checklist:</p>
-                  <p style="margin: 0; font-size: 11px; color: #64748B; line-height: 1.6;">
-                    • Please arrive 10 minutes prior to your scheduled slot for vital checks.<br>
-                    • Bring valid Government Photo ID and previous medical reports or prescription history.<br>
-                    • For 24/7 hospital ambulance or emergency inquiries, call our toll-free helpline at <strong>1800-419-7979</strong>.
-                  </p>
-                </div>
-
               </td>
             </tr>
 
-            <!-- ── FOOTER ── -->
+            <!-- ── MINIMAL CLASSIC FOOTER ── -->
             <tr>
-              <td style="padding: 20px 36px; background-color: #0F172A; text-align: center; color: #94A3B8; font-size: 11px; line-height: 1.5;">
-                <p style="margin: 0; font-weight: 600; color: #E2E8F0;">HealthSync Intelligent Healthcare Platform</p>
-                <p style="margin: 4px 0 0 0; color: #64748B;">© 2026 HealthSync Inc. All rights reserved. · HIPAA & DPDP Compliant</p>
+              <td style="padding: 24px 40px; background-color: #F8FAFC; border-top: 1px solid #F1F5F9; font-size: 11px; color: #64748B; line-height: 1.6;">
+                <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td align="left">
+                      <strong>HealthSync Technologies, Inc.</strong><br>
+                      Encrypted & HIPAA Compliant Healthcare Delivery<br>
+                      Need assistance? 24/7 Helpline: 1800-419-7979
+                    </td>
+                  </tr>
+                </table>
               </td>
             </tr>
 
