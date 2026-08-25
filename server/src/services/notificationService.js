@@ -150,31 +150,184 @@ const queueNotification = async ({
 // ── Email Templates ───────────────────────────────────────────
 
 const templates = {
-  appointmentConfirmed: ({ patientName, doctorName, specialization, scheduledAt, appointmentId }) => ({
-    subject: `✅ Appointment Confirmed — Dr. ${doctorName}`,
-    html: `
-      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0f172a; color: #e2e8f0; border-radius: 12px; overflow: hidden;">
-        <div style="background: linear-gradient(135deg, #14b8a6, #0891b2); padding: 32px 40px;">
-          <h1 style="margin: 0; color: white; font-size: 24px;">HealthSync</h1>
-          <p style="margin: 8px 0 0; color: rgba(255,255,255,0.85); font-size: 14px;">Your health, our priority</p>
-        </div>
-        <div style="padding: 36px 40px;">
-          <h2 style="color: #10b981; margin-top: 0;">Appointment Confirmed! 🎉</h2>
-          <p>Dear <strong>${patientName}</strong>,</p>
-          <p>Your appointment has been successfully booked. Here are your details:</p>
-          <div style="background: #1e293b; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #14b8a6;">
-            <p style="margin: 8px 0;"><strong>Doctor:</strong> Dr. ${doctorName} (${specialization})</p>
-            <p style="margin: 8px 0;"><strong>Date & Time:</strong> ${new Date(scheduledAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' })}</p>
-            <p style="margin: 8px 0;"><strong>Reference ID:</strong> ${appointmentId}</p>
-          </div>
-          <p style="color: #94a3b8; font-size: 13px;">Please arrive 10 minutes early. Bring any previous medical records or reports.</p>
-        </div>
-        <div style="padding: 20px 40px; background: #0f172a; border-top: 1px solid #1e293b; text-align: center; color: #64748b; font-size: 12px;">
-          <p>HealthSync Platform · Secure Healthcare Management</p>
-        </div>
-      </div>
-    `,
-  }),
+  appointmentConfirmed: ({
+    patientName,
+    doctorName,
+    specialization = 'Specialist',
+    scheduledAt,
+    appointmentId = 'HS-74829',
+    consultationFee = 750,
+    clinicAddress = 'Bansal Hospital & Heart Institute, Shahpura, Bhopal',
+    chiefComplaint = 'General Clinical Consultation',
+    urgencyLevel = 'Low',
+    suggestedDoctorQuestions = [
+      'How long have you noticed these specific symptoms?',
+      'Are you currently taking any OTC or prescribed medications?',
+      'Do you have any related allergies or past medical history?'
+    ],
+  }) => {
+    const formattedDate = new Date(scheduledAt).toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const startIso = new Date(scheduledAt).toISOString().replace(/-|:|\.\d\d\d/g, '');
+    const endIso = new Date(new Date(scheduledAt).getTime() + 30 * 60000).toISOString().replace(/-|:|\.\d\d\d/g, '');
+    const calTitle = encodeURIComponent(`Consultation with Dr. ${doctorName}`);
+    const calDetails = encodeURIComponent(`HealthSync Appointment ID: ${appointmentId}\nDoctor: Dr. ${doctorName} (${specialization})\nLocation: ${clinicAddress}`);
+    const googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${calTitle}&details=${calDetails}&dates=${startIso}/${endIso}`;
+
+    return {
+      subject: `✅ Appointment Confirmed (ID: ${appointmentId}) — Dr. ${doctorName}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Appointment Confirmation</title>
+        </head>
+        <body style="margin: 0; padding: 24px 0; background-color: #F1F5F9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+          <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 620px; margin: 0 auto; background-color: #FFFFFF; border-radius: 18px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.06); border: 1px solid #E2E8F0;">
+            
+            <!-- ── HEADER WITH HEALTHSYNC LOGO & BETA BADGE ── -->
+            <tr>
+              <td style="padding: 28px 36px; background-color: #FFFFFF; border-bottom: 1.5px solid #F1F5F9;">
+                <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td align="left">
+                      <div style="display: inline-flex; align-items: center;">
+                        <span style="font-size: 24px; color: #0284C7; font-weight: 900; letter-spacing: -0.5px;">⚡ Health<span style="color: #0F172A;">Sync</span></span>
+                        <span style="margin-left: 10px; background-color: #FEF3C7; color: #92400E; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px; border: 1px solid #FDE68A; text-transform: uppercase;">BETA V1.2</span>
+                      </div>
+                    </td>
+                    <td align="right">
+                      <span style="background-color: #ECFDF5; color: #059669; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 20px; border: 1px solid #A7F3D0;">
+                        ● CONFIRMED
+                      </span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- ── HERO BANNER ── -->
+            <tr>
+              <td style="padding: 32px 36px 20px 36px; background: linear-gradient(135deg, #0284C7 0%, #0D9488 100%); color: #FFFFFF;">
+                <h1 style="margin: 0 0 6px 0; font-size: 22px; font-weight: 800; color: #FFFFFF;">Appointment Confirmed! 🎉</h1>
+                <p style="margin: 0; font-size: 14px; color: rgba(255,255,255,0.9); line-height: 1.5;">
+                  Dear <strong>${patientName}</strong>, your in-clinic consultation has been successfully scheduled and reserved in the hospital queue.
+                </p>
+              </td>
+            </tr>
+
+            <!-- ── ITINERARY & FINANCIAL BREAKDOWN ── -->
+            <tr>
+              <td style="padding: 28px 36px;">
+                
+                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px; margin-bottom: 24px;">
+                  <tr>
+                    <td width="50%" style="vertical-align: top; padding-bottom: 16px;">
+                      <p style="margin: 0; font-size: 11px; color: #64748B; font-weight: 700; text-transform: uppercase;">Appointment Reference ID</p>
+                      <p style="margin: 3px 0 0 0; font-size: 15px; font-weight: 800; color: #0284C7;">${appointmentId}</p>
+                    </td>
+                    <td width="50%" style="vertical-align: top; padding-bottom: 16px;">
+                      <p style="margin: 0; font-size: 11px; color: #64748B; font-weight: 700; text-transform: uppercase;">Consultation Fee</p>
+                      <p style="margin: 3px 0 0 0; font-size: 15px; font-weight: 800; color: #0F172A;">₹${consultationFee} <span style="font-size: 11px; color: #059669; font-weight: 700;">(OPD Billed)</span></p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td width="50%" style="vertical-align: top; border-top: 1px solid #E2E8F0; padding-top: 14px;">
+                      <p style="margin: 0; font-size: 11px; color: #64748B; font-weight: 700; text-transform: uppercase;">Consulting Specialist</p>
+                      <p style="margin: 3px 0 0 0; font-size: 14px; font-weight: 800; color: #0F172A;">Dr. ${doctorName}</p>
+                      <p style="margin: 1px 0 0 0; font-size: 12px; color: #64748B;">${specialization}</p>
+                    </td>
+                    <td width="50%" style="vertical-align: top; border-top: 1px solid #E2E8F0; padding-top: 14px;">
+                      <p style="margin: 0; font-size: 11px; color: #64748B; font-weight: 700; text-transform: uppercase;">Date & Scheduled Time</p>
+                      <p style="margin: 3px 0 0 0; font-size: 13px; font-weight: 800; color: #0F172A;">${formattedDate}</p>
+                      <p style="margin: 1px 0 0 0; font-size: 11px; color: #0284C7; font-weight: 700;">30 Min Duration</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="border-top: 1px solid #E2E8F0; padding-top: 14px;">
+                      <p style="margin: 0; font-size: 11px; color: #64748B; font-weight: 700; text-transform: uppercase;">Clinic / Center Location</p>
+                      <p style="margin: 3px 0 0 0; font-size: 13px; color: #334155; font-weight: 600;">📍 ${clinicAddress}</p>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- ── GEMINI AI CLINICAL PRE-VISIT BRIEFING ── -->
+                <div style="background-color: #F0F9FF; border: 1.5px solid #BAE6FD; border-radius: 14px; padding: 20px; margin-bottom: 24px;">
+                  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 10px;">
+                    <tr>
+                      <td align="left">
+                        <span style="font-size: 13px; font-weight: 800; color: #0369A1;">✨ Gemini AI Pre-Visit Clinical Briefing</span>
+                      </td>
+                      <td align="right">
+                        <span style="background-color: #E0F2FE; color: #0284C7; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 4px; text-transform: uppercase;">
+                          ${urgencyLevel} Priority
+                        </span>
+                      </td>
+                    </tr>
+                  </table>
+                  
+                  <p style="margin: 0 0 8px 0; font-size: 12px; color: #0369A1; font-weight: 700;">Chief Complaint Summary:</p>
+                  <p style="margin: 0 0 14px 0; font-size: 13px; color: #334155; line-height: 1.4;">${chiefComplaint}</p>
+
+                  <p style="margin: 0 0 6px 0; font-size: 12px; color: #0369A1; font-weight: 700;">Suggested Questions To Ask Dr. ${doctorName}:</p>
+                  <ul style="margin: 0; padding-left: 18px; color: #334155; font-size: 12px; line-height: 1.6;">
+                    ${suggestedDoctorQuestions.map(q => `<li style="margin-bottom: 4px;">${q}</li>`).join('')}
+                  </ul>
+                </div>
+
+                <!-- ── CALL TO ACTION BUTTONS ── -->
+                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
+                  <tr>
+                    <td align="center" style="padding-right: 6px;">
+                      <a href="${googleCalUrl}" target="_blank" style="display: block; background-color: #0284C7; color: #FFFFFF; font-size: 13px; font-weight: 700; text-decoration: none; padding: 12px 20px; border-radius: 10px; text-align: center;">
+                        📅 Add to Google Calendar
+                      </a>
+                    </td>
+                    <td align="center" style="padding-left: 6px;">
+                      <a href="https://health-care-appoinment-ecosystem.vercel.app/patient" target="_blank" style="display: block; background-color: #F8FAFC; color: #0F172A; font-size: 13px; font-weight: 700; text-decoration: none; padding: 12px 20px; border-radius: 10px; text-align: center; border: 1.5px solid #CBD5E1;">
+                        🏥 Open Patient Portal
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- ── IMPORTANT PATIENT GUIDELINES ── -->
+                <div style="border-top: 1px solid #E2E8F0; padding-top: 18px;">
+                  <p style="margin: 0 0 4px 0; font-size: 12px; color: #0F172A; font-weight: 700;">Important Visit Checklist:</p>
+                  <p style="margin: 0; font-size: 11px; color: #64748B; line-height: 1.6;">
+                    • Please arrive 10 minutes prior to your scheduled slot for vital checks.<br>
+                    • Bring valid Government Photo ID and previous medical reports or prescription history.<br>
+                    • For 24/7 hospital ambulance or emergency inquiries, call our toll-free helpline at <strong>1800-419-7979</strong>.
+                  </p>
+                </div>
+
+              </td>
+            </tr>
+
+            <!-- ── FOOTER ── -->
+            <tr>
+              <td style="padding: 20px 36px; background-color: #0F172A; text-align: center; color: #94A3B8; font-size: 11px; line-height: 1.5;">
+                <p style="margin: 0; font-weight: 600; color: #E2E8F0;">HealthSync Intelligent Healthcare Platform</p>
+                <p style="margin: 4px 0 0 0; color: #64748B;">© 2026 HealthSync Inc. All rights reserved. · HIPAA & DPDP Compliant</p>
+              </td>
+            </tr>
+
+          </table>
+        </body>
+        </html>
+      `,
+    };
+  },
 
   doctorLeaveNotice: ({ patientName, doctorName, originalDate, rescheduleToken, rescheduleLink }) => ({
     subject: `⚠️ Appointment Cancelled — Dr. ${doctorName} is on Leave`,
