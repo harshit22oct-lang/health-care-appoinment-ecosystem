@@ -503,70 +503,7 @@ export default function BookingFlow() {
         {step === 3 && (
           <div className="animate-slideUp" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-            {/* AI Analysis Summary Card */}
-            {aiAnalysis && (
-              <div
-                style={{
-                  background: '#FFFFFF',
-                  border: '1px solid #E2E8F0',
-                  borderLeft: `4px solid ${URGENCY_CONFIG[aiAnalysis.urgencyLevel]?.badge === 'badge-red' ? '#EF4444' : '#0284C7'}`,
-                  borderRadius: '16px',
-                  padding: '20px',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Brain size={20} color="#0284C7" />
-                    <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                      AI Pre-Visit Clinical Briefing
-                    </h3>
-                  </div>
-                  <span className={`badge ${URGENCY_CONFIG[aiAnalysis.urgencyLevel]?.badge || 'badge-green'}`}>
-                    {aiAnalysis.urgencyLevel} Priority
-                  </span>
-                </div>
-
-                <div style={{ marginBottom: '12px' }}>
-                  <p style={{ fontSize: '11px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', margin: 0 }}>
-                    Chief Complaint Formulated
-                  </p>
-                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A', marginTop: '2px' }}>
-                    {aiAnalysis.chiefComplaint}
-                  </p>
-                </div>
-
-                {aiAnalysis.suggestedDoctorQuestions?.length > 0 && (
-                  <div>
-                    <p style={{ fontSize: '11px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', marginBottom: '6px' }}>
-                      Recommended Questions To Ask Your Doctor
-                    </p>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      {aiAnalysis.suggestedDoctorQuestions.map((q, idx) => (
-                        <div
-                          key={idx}
-                          style={{
-                            padding: '8px 12px',
-                            borderRadius: '8px',
-                            background: '#F8FAFC',
-                            border: '1px solid #E2E8F0',
-                            fontSize: '12px',
-                            color: '#334155',
-                            display: 'flex',
-                            gap: '8px',
-                          }}
-                        >
-                          <span style={{ fontWeight: 800, color: '#0284C7' }}>Q{idx + 1}:</span>
-                          <span>{q}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Official Confirmation Card */}
+            {/* Official Confirmation Card (Top Primary Hero) */}
             <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '20px', padding: '32px 24px', textAlign: 'center', boxShadow: '0 8px 24px rgba(0,0,0,0.04)' }}>
               <div
                 style={{
@@ -588,7 +525,7 @@ export default function BookingFlow() {
                 Appointment Confirmed!
               </h2>
               <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 20px 0' }}>
-                Your appointment ID is <strong style={{ color: '#0F172A' }}>{confirmedBooking?._id || 'HS-74829'}</strong>. A confirmation has been added to your HealthSync records.
+                Your appointment ID is <strong style={{ color: '#0284C7' }}>{confirmedBooking?._id || 'HS-74829'}</strong>. A confirmation has been added to your HealthSync records.
               </p>
 
               {/* Itinerary Details Box */}
@@ -597,7 +534,7 @@ export default function BookingFlow() {
                   background: '#F8FAFC',
                   border: '1px solid #E2E8F0',
                   borderRadius: '14px',
-                  padding: '16px',
+                  padding: '18px',
                   textAlign: 'left',
                   marginBottom: '24px',
                   display: 'grid',
@@ -606,24 +543,24 @@ export default function BookingFlow() {
                 }}
               >
                 <div>
-                  <p style={{ fontSize: '11px', color: '#64748B', margin: 0 }}>Consulting Specialist</p>
+                  <p style={{ fontSize: '11px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', margin: 0 }}>Consulting Specialist</p>
                   <p style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>{doctorName}</p>
                   <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>{currentDoc.specialization}</p>
                 </div>
 
                 <div>
-                  <p style={{ fontSize: '11px', color: '#64748B', margin: 0 }}>Date & Time</p>
+                  <p style={{ fontSize: '11px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', margin: 0 }}>Date & Time</p>
                   <p style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
                     {selectedSlot ? new Date(selectedSlot.startTime).toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' }) : selectedDate}
                   </p>
                   <p style={{ fontSize: '12px', color: '#0284C7', fontWeight: 700, margin: 0 }}>
-                    {selectedSlot ? new Date(selectedSlot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '10:00 AM'}
+                    {selectedSlot ? new Date(selectedSlot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '10:00 AM'} · 30 Min
                   </p>
                 </div>
 
-                <div style={{ gridColumn: '1/-1', borderTop: '1px solid #E2E8F0', paddingTop: '10px' }}>
-                  <p style={{ fontSize: '11px', color: '#64748B', margin: 0 }}>Clinic / Center Location</p>
-                  <p style={{ fontSize: '13px', color: '#334155', marginTop: '2px', fontWeight: 500 }}>
+                <div style={{ gridColumn: '1/-1', borderTop: '1px solid #E2E8F0', paddingTop: '12px' }}>
+                  <p style={{ fontSize: '11px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', margin: 0 }}>Clinic / Center Location</p>
+                  <p style={{ fontSize: '13px', color: '#334155', marginTop: '2px', fontWeight: 600 }}>
                     📍 {currentDoc.clinicAddress || `${currentDoc.city} Medical Center`}
                   </p>
                 </div>
@@ -634,7 +571,7 @@ export default function BookingFlow() {
                 <button
                   className="btn btn-primary"
                   onClick={() => navigate('/patient')}
-                  style={{ borderRadius: '10px', padding: '10px 18px', fontSize: '13px', fontWeight: 700 }}
+                  style={{ borderRadius: '10px', padding: '10px 20px', fontSize: '13px', fontWeight: 700 }}
                 >
                   Go to Patient Dashboard
                 </button>
@@ -653,6 +590,75 @@ export default function BookingFlow() {
                 </button>
               </div>
             </div>
+
+            {/* Smart Pre-Visit Prep (AI Clinical Briefing) */}
+            {aiAnalysis && (
+              <div
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  borderLeft: `4px solid ${URGENCY_CONFIG[aiAnalysis.urgencyLevel]?.badge === 'badge-red' ? '#EF4444' : '#0284C7'}`,
+                  borderRadius: '16px',
+                  padding: '20px',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Brain size={20} color="#0284C7" />
+                    <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                      Smart Pre-Visit Checklist (Powered by Gemini AI)
+                    </h3>
+                  </div>
+                  <span className={`badge ${URGENCY_CONFIG[aiAnalysis.urgencyLevel]?.badge || 'badge-green'}`}>
+                    {aiAnalysis.urgencyLevel} Priority
+                  </span>
+                </div>
+
+                <div style={{ marginBottom: '14px', background: '#F8FAFC', padding: '12px 14px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                  <p style={{ fontSize: '11px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', margin: 0 }}>
+                    Reported Symptoms Summary
+                  </p>
+                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A', marginTop: '2px', textTransform: 'capitalize' }}>
+                    {aiAnalysis.chiefComplaint}
+                  </p>
+                </div>
+
+                <div>
+                  <p style={{ fontSize: '12px', color: '#0F172A', fontWeight: 700, marginBottom: '8px' }}>
+                    💡 Recommended Questions You Can Ask {doctorName} During Your Visit:
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {[
+                      `What is the likely cause of my ${aiAnalysis.chiefComplaint || 'symptoms'} and do I need any lab tests?`,
+                      `Are there specific foods, hydration guidelines, or activities I should follow or avoid?`,
+                      `What warning signs should prompt me to seek immediate follow-up care?`
+                    ].map((q, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          padding: '10px 14px',
+                          borderRadius: '8px',
+                          background: '#F0F9FF',
+                          border: '1px solid #BAE6FD',
+                          fontSize: '12px',
+                          color: '#0369A1',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '8px',
+                          lineHeight: '1.4',
+                        }}
+                      >
+                        <span style={{ fontWeight: 800, color: '#0284C7', flexShrink: 0 }}>Q{idx + 1}:</span>
+                        <span>{q}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+            )}
+
           </div>
         )}
       </div>
