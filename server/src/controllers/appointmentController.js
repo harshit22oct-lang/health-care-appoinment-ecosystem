@@ -12,7 +12,7 @@ const appointmentService = require('../services/appointmentService');
 
 const createAppointmentValidation = [
   body('slotId').notEmpty().withMessage('slotId is required'),
-  body('holdToken').isUUID(4).withMessage('Valid hold token is required'),
+  body('holdToken').notEmpty().withMessage('Valid hold token is required'),
   body('symptoms').notEmpty().withMessage('Symptoms description is required').isLength({ max: 2000 }),
   body('severity').optional().isIn(['mild', 'moderate', 'severe']),
   body('symptomDuration').optional().trim().isLength({ max: 100 }),

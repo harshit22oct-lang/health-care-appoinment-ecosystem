@@ -92,7 +92,7 @@ const sendEmail = async ({ to, subject, html }) => {
 };
 
 /**
- * Queue a notification job for async delivery
+ * Queue a notification job for async delivery (with immediate background dispatch)
  */
 const queueNotification = async ({
   type,
@@ -104,19 +104,46 @@ const queueNotification = async ({
   scheduledAt = new Date(),
   metadata = {},
 }) => {
-  const job = await NotificationJob.create({
-    type,
-    recipientId,
-    recipientEmail,
-    subject,
-    htmlBody,
-    appointmentId,
-    scheduledAt,
-    metadata,
-    status: JOB_STATUS.QUEUED,
-    nextRetryAt: scheduledAt,
-  });
-  logger.debug(`[NotificationService] Queued ${type} for ${recipientEmail} (job: ${job._id})`);
+  let job = null;
+  try {
+    job = await NotificationJob.create({
+      type,
+      recipientId,
+      recipientEmail,
+      subject,
+      htmlBody,
+      appointmentId,
+      scheduledAt,
+      metadata,
+      status: JOB_STATUS.QUEUED,
+      nextRetryAt: scheduledAt,
+    });
+    logger.info(`[NotificationService] Queued ${type} for ${recipientEmail}`);
+  } catch (err) {
+    logger.warn(`[NotificationService] DB job creation skipped: ${err.message}`);
+  }
+
+  // Trigger IMMEDIATE background dispatch
+  if (recipientEmail) {
+    setImmediate(async () => {
+      try {
+        const result = await sendEmail({ to: recipientEmail, subject, html: htmlBody });
+        if (job) {
+          try {
+            await NotificationJob.findByIdAndUpdate(job._id, {
+              status: JOB_STATUS.SENT,
+              sentAt: new Date(),
+              externalMessageId: result?.messageId || result?.id,
+            });
+          } catch {}
+        }
+        logger.info(`[NotificationService] Email dispatched immediately to ${recipientEmail}`);
+      } catch (sendErr) {
+        logger.error(`[NotificationService] Immediate email failed for ${recipientEmail}: ${sendErr.message}`);
+      }
+    });
+  }
+
   return job;
 };
 

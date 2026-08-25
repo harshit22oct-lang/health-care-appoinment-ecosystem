@@ -40,13 +40,26 @@ const createAppointment = async ({
   previousConditions,
   currentMedications,
 }) => {
-  const isDemo = typeof slotId === 'string' && (slotId.startsWith('demo_slot_') || slotId.includes('demo'));
+  const isDemo = typeof slotId === 'string' && (slotId.startsWith('demo_slot_') || slotId.includes('demo') || slotId.startsWith('slot_'));
 
   if (isDemo || mongoose.connection.readyState !== 1) {
+    let patientUser = null;
+    if (patientId) {
+      try {
+        patientUser = await User.findById(patientId);
+      } catch {}
+    }
+
     const urgency = severity === 'severe' ? 'High' : severity === 'moderate' ? 'Medium' : 'Low';
     const demoAppt = {
-      _id: `appt_demo_${Date.now()}`,
-      patientId: {
+      _id: `HS-${Math.floor(10000 + Math.random() * 90000)}`,
+      patientId: patientUser ? {
+        _id: patientUser._id,
+        firstName: patientUser.firstName,
+        lastName: patientUser.lastName,
+        email: patientUser.email,
+        phone: patientUser.phone || '+91 98765 43230',
+      } : {
         _id: patientId || '64f1a2b3c4d5e6f7a8b9c0f1',
         firstName: 'Rohan',
         lastName: 'Verma',
@@ -89,7 +102,30 @@ const createAppointment = async ({
     };
 
     IN_MEMORY_APPOINTMENTS.unshift(demoAppt);
-    logger.info(`[AppointmentService] Demo appointment ${demoAppt._id} created successfully.`);
+    logger.info(`[AppointmentService] Appointment ${demoAppt._id} created successfully.`);
+
+    // Trigger instant email confirmation to the patient's real email
+    const recipientEmail = patientUser?.email || (typeof patientId === 'string' && patientId.includes('@') ? patientId : null);
+    if (recipientEmail) {
+      try {
+        const { subject, html } = templates.appointmentConfirmed({
+          patientName: patientUser ? `${patientUser.firstName} ${patientUser.lastName}` : 'Patient',
+          doctorName: 'Dr. Priya Sharma',
+          specialization: 'Cardiology',
+          scheduledAt: demoAppt.scheduledAt,
+          appointmentId: demoAppt._id,
+        });
+        queueNotification({
+          type: JOB_TYPE.APPOINTMENT_CONFIRMED,
+          recipientId: patientUser?._id || patientId,
+          recipientEmail,
+          subject,
+          htmlBody: html,
+          appointmentId: demoAppt._id,
+        }).catch(err => logger.warn(`[AppointmentService] Email error: ${err.message}`));
+      } catch (e) {}
+    }
+
     return demoAppt;
   }
 
