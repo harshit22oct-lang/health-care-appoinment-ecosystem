@@ -90,11 +90,12 @@ export default function DoctorDiscovery() {
       if (aiMatch.detectedCity) {
         setSelectedCity(aiMatch.detectedCity);
         setStoredCity(aiMatch.detectedCity);
+        window.dispatchEvent(new CustomEvent('healthsync_city_changed', { detail: aiMatch.detectedCity }));
       }
 
       if (matchedDocs && matchedDocs.length > 0) {
         setDoctors(matchedDocs);
-        addToast(`Found ${matchedDocs.length} specialists for '${aiMatch.primarySpecialty}' in ${aiMatch.detectedCity || selectedCity}`, 'success');
+        addToast(`Found ${matchedDocs.length} medical centers for '${aiMatch.primarySpecialty}' in ${aiMatch.detectedCity || selectedCity}`, 'success');
       } else {
         fetchDoctors(aiMatch.detectedCity || selectedCity, aiMatch.primarySpecialty || 'All');
       }
