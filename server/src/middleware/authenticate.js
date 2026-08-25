@@ -24,13 +24,15 @@ const authenticate = asyncHandler(async (req, res, next) => {
     throw ApiError.unauthorized('Access denied. No token provided.');
   }
 
-  try {
     const decoded = jwt.verify(token, env.JWT_SECRET);
+    const targetUserId = decoded.id || decoded.userId || decoded._id;
     
     let user = null;
-    try {
-      user = await User.findById(decoded.id).select('-passwordHash -calendarTokens');
-    } catch {}
+    if (targetUserId) {
+      try {
+        user = await User.findById(targetUserId).select('-passwordHash -calendarTokens');
+      } catch {}
+    }
 
     if (!user) {
       // Check demo user fallback
@@ -39,7 +41,7 @@ const authenticate = asyncHandler(async (req, res, next) => {
         '64f1a2b3c4d5e6f7a8b9c0d2': { _id: '64f1a2b3c4d5e6f7a8b9c0d2', firstName: 'Priya', lastName: 'Sharma', email: 'dr.priya@healthsync.demo', role: 'doctor', isActive: true },
         '64f1a2b3c4d5e6f7a8b9c0d0': { _id: '64f1a2b3c4d5e6f7a8b9c0d0', firstName: 'Platform', lastName: 'Admin', email: 'admin@healthsync.demo', role: 'admin', isActive: true },
       };
-      user = DEMO_FALLBACKS[decoded.id] || (decoded.role ? { _id: decoded.id, role: decoded.role, firstName: 'User', isActive: true } : null);
+      user = DEMO_FALLBACKS[String(targetUserId)] || (decoded.role ? { _id: targetUserId || 'google_user', role: decoded.role, firstName: decoded.name || 'User', email: decoded.email || 'user@healthsync.io', isActive: true } : null);
     }
 
     if (!user) {

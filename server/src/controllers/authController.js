@@ -101,7 +101,7 @@ const googleCalendarCallback = asyncHandler(async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user._id, role: user.role },
+      { id: user._id, userId: user._id, role: user.role, name: user.firstName, email: user.email },
       env.JWT_SECRET,
       { expiresIn: env.JWT_EXPIRES_IN }
     );

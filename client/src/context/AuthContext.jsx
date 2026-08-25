@@ -15,10 +15,28 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const data = await api.auth.me();
-      setUser(data.data.user);
-      setDoctorProfile(data.data.doctorProfile);
+      if (data?.data?.user) {
+        setUser(data.data.user);
+        setDoctorProfile(data.data.doctorProfile);
+      } else {
+        throw new Error('Invalid me payload');
+      }
     } catch {
-      localStorage.removeItem('hs_token');
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload && (payload.id || payload.userId)) {
+          setUser({
+            _id: payload.id || payload.userId,
+            role: payload.role || 'patient',
+            firstName: payload.name || 'User',
+            email: payload.email || 'user@healthsync.io',
+          });
+        } else {
+          localStorage.removeItem('hs_token');
+        }
+      } catch {
+        localStorage.removeItem('hs_token');
+      }
     } finally {
       setLoading(false);
     }
