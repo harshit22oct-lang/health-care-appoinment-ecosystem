@@ -117,6 +117,11 @@ const googleCalendarCallback = asyncHandler(async (req, res) => {
       res.redirect(`${clientUrl}/patient?calendar=connected`);
     }
   } catch (err) {
+    logger.error(`[AuthController] Google OAuth Callback failed: ${err.message}`);
+    res.redirect(`${clientUrl}/login?error=google_auth_error`);
+  }
+});
+
 const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
   if (!email) throw ApiError.badRequest('Email is required.');
