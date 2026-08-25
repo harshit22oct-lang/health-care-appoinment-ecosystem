@@ -54,6 +54,10 @@ const sendEmail = async ({ to, subject, html }) => {
         ? `"${env.EMAIL_FROM_NAME || 'HealthSync Platform'}" <${env.EMAIL_FROM_ADDRESS}>`
         : `"${env.EMAIL_FROM_NAME || 'HealthSync Platform'}" <onboarding@resend.dev>`;
 
+      // Resend sandbox testing rule: demo or invalid domains must route to owner (nehasaraf0704@gmail.com)
+      const isDemoRecipient = !to || to.includes('.demo') || to.includes('test') || to.includes('localhost') || !to.includes('@');
+      const targetRecipient = isDemoRecipient ? 'nehasaraf0704@gmail.com' : to;
+
       const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -62,7 +66,7 @@ const sendEmail = async ({ to, subject, html }) => {
         },
         body: JSON.stringify({
           from: fromAddress,
-          to: [to],
+          to: [targetRecipient],
           subject,
           html,
         }),
@@ -70,9 +74,31 @@ const sendEmail = async ({ to, subject, html }) => {
 
       const data = await res.json();
       if (!res.ok) {
+        // If Resend throws sandbox 403 error, fallback immediately to verified owner
+        if (targetRecipient !== 'nehasaraf0704@gmail.com' && (res.status === 403 || String(data.message).includes('own email address'))) {
+          logger.warn(`[NotificationService:Resend] Retrying delivery to sandbox owner nehasaraf0704@gmail.com for ${to}`);
+          const fallbackRes = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${resendKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: fromAddress,
+              to: ['nehasaraf0704@gmail.com'],
+              subject: `[HealthSync ${to}] ${subject}`,
+              html,
+            }),
+          });
+          const fallbackData = await fallbackRes.json();
+          if (fallbackRes.ok) {
+            logger.info(`[NotificationService:Resend] Email delivered to sandbox owner, ID: ${fallbackData.id}`);
+            return { messageId: fallbackData.id, resend: true };
+          }
+        }
         throw new Error(data.message || `Resend API returned status ${res.status}`);
       }
-      logger.info(`[NotificationService:Resend] Email delivered to ${to}, ID: ${data.id}`);
+      logger.info(`[NotificationService:Resend] Email delivered to ${targetRecipient}, ID: ${data.id}`);
       return { messageId: data.id, resend: true };
     } catch (err) {
       logger.error(`[NotificationService:Resend] Failed: ${err.message}`);

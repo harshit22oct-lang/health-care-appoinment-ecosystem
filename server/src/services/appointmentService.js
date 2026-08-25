@@ -185,7 +185,28 @@ const createAppointment = async ({
 
   // === ASYNC POST-CREATION TASKS (non-blocking) ===
   setImmediate(async () => {
-    // 1. Pre-visit AI analysis
+    // 1. Instant Confirmation Email (Top Priority)
+    try {
+      const { subject, html } = templates.appointmentConfirmed({
+        patientName: `${patient.firstName} ${patient.lastName}`,
+        doctorName: `${doctor.firstName} ${doctor.lastName}`,
+        specialization: doctorProfile?.specialization || 'General Medicine',
+        scheduledAt: slot.startTime,
+        appointmentId: appointment._id,
+      });
+      await queueNotification({
+        type: JOB_TYPE.APPOINTMENT_CONFIRMED,
+        recipientId: patientId,
+        recipientEmail: patient.email,
+        subject,
+        htmlBody: html,
+        appointmentId: appointment._id,
+      });
+    } catch (err) {
+      logger.error(`[AppointmentService] Email queuing failed: ${err.message}`);
+    }
+
+    // 2. Pre-visit AI analysis
     try {
       const aiResult = await analyzePreVisitSymptoms({
         symptoms, symptomDuration, severity, previousConditions, currentMedications
@@ -205,7 +226,7 @@ const createAppointment = async ({
       logger.error(`[AppointmentService] Pre-visit AI failed for ${appointment._id}: ${err.message}`);
     }
 
-    // 2. Google Calendar sync
+    // 3. Google Calendar sync
     try {
       const eventId = await createCalendarEvent({
         userId: patientId,
@@ -223,27 +244,6 @@ const createAppointment = async ({
     } catch (err) {
       logger.warn(`[AppointmentService] Calendar sync failed: ${err.message}`);
       await Appointment.findByIdAndUpdate(appointment._id, { calendarSyncStatus: 'SYNC_FAILED' });
-    }
-
-    // 3. Confirmation email
-    try {
-      const { subject, html } = templates.appointmentConfirmed({
-        patientName: `${patient.firstName} ${patient.lastName}`,
-        doctorName: `${doctor.firstName} ${doctor.lastName}`,
-        specialization: doctorProfile?.specialization || 'General Medicine',
-        scheduledAt: slot.startTime,
-        appointmentId: appointment._id,
-      });
-      await queueNotification({
-        type: JOB_TYPE.APPOINTMENT_CONFIRMED,
-        recipientId: patientId,
-        recipientEmail: patient.email,
-        subject,
-        htmlBody: html,
-        appointmentId: appointment._id,
-      });
-    } catch (err) {
-      logger.error(`[AppointmentService] Email queuing failed: ${err.message}`);
     }
   });
 
