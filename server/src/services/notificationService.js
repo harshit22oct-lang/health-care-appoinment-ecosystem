@@ -371,6 +371,70 @@ const templates = {
       </div>
     `,
   }),
+
+  passwordResetLink: ({ userName, resetLink, validMinutes = 15 }) => ({
+    subject: '🔒 Reset your HealthSync account password',
+    html: `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Reset your password</title>
+      </head>
+      <body style="margin: 0; padding: 40px 16px; background-color: #F8FAFC; font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #1E293B;">
+        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 520px; margin: 0 auto; background-color: #FFFFFF; border-radius: 12px; border: 1px solid #E2E8F0; overflow: hidden;">
+          
+          <tr>
+            <td style="padding: 32px 36px 20px 36px; border-bottom: 1px solid #F1F5F9;">
+              <span style="font-size: 18px; font-weight: 800; color: #0F172A; letter-spacing: -0.4px;">
+                Health<span style="color: #0284C7;">Sync</span>
+              </span>
+              <span style="display: inline-block; margin-left: 8px; vertical-align: middle; font-size: 10px; font-weight: 700; background: #F1F5F9; color: #475569; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.04em;">SECURITY</span>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 32px 36px 28px 36px;">
+              <h1 style="margin: 0 0 12px 0; font-size: 20px; font-weight: 700; color: #0F172A; letter-spacing: -0.3px;">
+                Password Reset Request
+              </h1>
+              <p style="margin: 0 0 20px 0; font-size: 14px; color: #475569; line-height: 1.5;">
+                Hi ${userName}, we received a request to reset the password for your HealthSync account. Click the button below to set a new password:
+              </p>
+
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;">
+                <tr>
+                  <td>
+                    <a href="${resetLink}" target="_blank" style="display: block; background-color: #0F172A; color: #FFFFFF; font-size: 13px; font-weight: 600; text-align: center; text-decoration: none; padding: 13px 24px; border-radius: 8px;">
+                      Reset My Password
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin: 0 0 16px 0; font-size: 12px; color: #64748B; line-height: 1.5;">
+                This link will expire in <strong>${validMinutes} minutes</strong>. If you did not make this request, you can safely ignore this email — your account remains secure.
+              </p>
+
+              <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 12px; font-size: 11px; color: #64748B; word-break: break-all;">
+                <strong>Direct Link:</strong><br>
+                <a href="${resetLink}" style="color: #0284C7; text-decoration: none;">${resetLink}</a>
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 20px 36px; background-color: #F8FAFC; border-top: 1px solid #F1F5F9; font-size: 11px; color: #64748B; line-height: 1.5;">
+              HealthSync Technologies, Inc. · Automated Security Service · 24/7 Helpline: 1800-419-7979
+            </td>
+          </tr>
+
+        </table>
+      </body>
+      </html>
+    `,
+  }),
 };
 
 module.exports = { sendEmail, queueNotification, templates, JOB_TYPE };

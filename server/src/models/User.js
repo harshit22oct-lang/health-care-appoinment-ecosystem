@@ -66,8 +66,9 @@ const userSchema = new mongoose.Schema({
   allergies:        [{ type: String, trim: true }],
   emergencyContact: { type: emergencyContactSchema },
 
-  // Google Calendar OAuth tokens (encrypted at application level)
-  calendarTokens: { type: calendarTokensSchema },
+  // Password reset fields
+  passwordResetToken:   { type: String, select: false },
+  passwordResetExpires: { type: Date, select: false },
 
   isActive:    { type: Boolean, default: true },
   lastLoginAt: { type: Date },

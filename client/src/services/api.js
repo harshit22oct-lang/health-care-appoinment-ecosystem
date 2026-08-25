@@ -41,11 +41,13 @@ export const api = {
 
   // Auth
   auth: {
-    register:      (body) => api.post('/auth/register', body),
-    login:         (body) => api.post('/auth/login', body),
-    logout:        ()     => api.post('/auth/logout'),
-    me:            ()     => api.get('/auth/me'),
-    updateProfile: (body) => api.put('/auth/me', body),
+    register:       (body) => api.post('/auth/register', body),
+    login:          (body) => api.post('/auth/login', body),
+    logout:         ()     => api.post('/auth/logout'),
+    forgotPassword: (body) => api.post('/auth/forgot-password', body),
+    resetPassword:  (body) => api.post('/auth/reset-password', body),
+    me:             ()     => api.get('/auth/me'),
+    updateProfile:  (body) => api.put('/auth/me', body),
   },
 
   // Doctors

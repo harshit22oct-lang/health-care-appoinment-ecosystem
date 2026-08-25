@@ -3,14 +3,19 @@
 // ============================================================
 'use strict';
 
+const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 const { body } = require('express-validator');
 const asyncHandler = require('../utils/asyncHandler');
 const ApiResponse = require('../utils/ApiResponse');
+const ApiError = require('../utils/ApiError');
 const authService = require('../services/authService');
+const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const env = require('../config/env');
 const logger = require('../utils/logger');
 const { getAuthUrl, handleOAuthCallback } = require('../services/calendarService');
+const { templates, queueNotification } = require('../services/notificationService');
 
 // Validation chains
 const registerValidation = [
@@ -112,9 +117,87 @@ const googleCalendarCallback = asyncHandler(async (req, res) => {
       res.redirect(`${clientUrl}/patient?calendar=connected`);
     }
   } catch (err) {
-    logger.error(`[AuthController] Google OAuth Callback failed: ${err.message}`);
-    res.redirect(`${clientUrl}/login?error=google_auth_error`);
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  if (!email) throw ApiError.badRequest('Email is required.');
+
+  const cleanEmail = email.toLowerCase().trim();
+  let user = null;
+  try {
+    user = await User.findOne({ email: cleanEmail });
+  } catch {}
+
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+  if (user) {
+    user.passwordResetToken = hashedToken;
+    user.passwordResetExpires = expiresAt;
+    try {
+      await user.save({ validateBeforeSave: false });
+    } catch {}
   }
+
+  let clientUrl = (env.CLIENT_URL || '').trim();
+  if (!clientUrl || !clientUrl.startsWith('http') || clientUrl.includes('*') || clientUrl.includes('localhost')) {
+    clientUrl = 'https://health-care-appoinment-ecosystem.vercel.app';
+  }
+  clientUrl = clientUrl.replace(/\/+$/, '');
+  const resetLink = `${clientUrl}/reset-password?token=${rawToken}&email=${encodeURIComponent(cleanEmail)}`;
+
+  // Dispatch email notification via Resend
+  const { subject, html } = templates.passwordResetLink({
+    userName: user ? user.firstName : 'User',
+    resetLink,
+    validMinutes: 15,
+  });
+
+  try {
+    await queueNotification({
+      type: 'PASSWORD_RESET',
+      recipientId: user?._id || 'guest',
+      recipientEmail: cleanEmail,
+      subject,
+      htmlBody: html,
+    });
+  } catch (e) {
+    logger.warn(`[AuthController] Reset email error: ${e.message}`);
+  }
+
+  ApiResponse.ok(res, { sent: true }, 'If an account exists with this email, a reset link has been sent.');
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password) throw ApiError.badRequest('Reset token and new password are required.');
+  if (password.length < 6) throw ApiError.badRequest('Password must be at least 6 characters.');
+
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+  let user = null;
+  try {
+    user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: new Date() },
+    });
+  } catch {}
+
+  if (!user) {
+    throw ApiError.badRequest('Password reset link is invalid or has expired. Please request a new one.');
+  }
+
+  user.passwordHash = await bcrypt.hash(password, 12);
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+
+  const jwtToken = jwt.sign(
+    { id: user._id, userId: user._id, role: user.role, name: user.firstName, email: user.email },
+    env.JWT_SECRET,
+    { expiresIn: env.JWT_EXPIRES_IN }
+  );
+
+  ApiResponse.ok(res, { token: jwtToken, user: user.toPublicJSON ? user.toPublicJSON() : user }, 'Password reset successfully. You are now logged in.');
 });
 
 module.exports = {
@@ -123,6 +206,8 @@ module.exports = {
   logout,
   getMe,
   updateProfile,
+  forgotPassword,
+  resetPassword,
   googleLoginStart,
   googleCalendarConnect,
   googleCalendarCallback,

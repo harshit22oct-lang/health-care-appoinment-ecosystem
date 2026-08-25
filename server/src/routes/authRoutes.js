@@ -9,6 +9,7 @@ const authenticate = require('../middleware/authenticate');
 const validate = require('../middleware/validate');
 const {
   register, login, logout, getMe, updateProfile,
+  forgotPassword, resetPassword,
   googleLoginStart, googleCalendarConnect, googleCalendarCallback,
   registerValidation, loginValidation,
 } = require('../controllers/authController');
@@ -16,6 +17,8 @@ const {
 router.post('/register', registerValidation, validate, register);
 router.post('/login', loginValidation, validate, login);
 router.post('/logout', logout);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 router.get('/me', authenticate, getMe);
 router.put('/me', authenticate, updateProfile);
 router.get('/google/login', googleLoginStart);

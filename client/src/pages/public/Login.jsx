@@ -197,9 +197,9 @@ export default function Login() {
                 <label className="form-label" htmlFor="login-password" style={{ fontSize: '12px', fontWeight: 700, color: '#334155', margin: 0 }}>
                   Password
                 </label>
-                <span style={{ fontSize: '11px', color: '#0284C7', fontWeight: 600, cursor: 'pointer' }} onClick={() => addToast('Please use any demo credential below to sign in instantly.', 'info')}>
+                <Link to="/forgot-password" style={{ fontSize: '11px', color: '#0284C7', fontWeight: 600, textDecoration: 'none' }}>
                   Forgot password?
-                </span>
+                </Link>
               </div>
               <div style={{ position: 'relative' }}>
                 <Lock size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
