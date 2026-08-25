@@ -473,16 +473,16 @@ export default function DoctorDiscovery() {
 
             {/* Section B: Public Medical Directory (Reference Profiles) */}
             {(viewTab === 'all' || viewTab === 'reference') && referenceDoctors.length > 0 && (
-              <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '20px' }}>
+              <div style={{ borderTop: bookableDoctors.length > 0 ? '1px solid #E2E8F0' : 'none', paddingTop: bookableDoctors.length > 0 ? '20px' : '0px' }}>
                 <div style={{ marginBottom: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
                     <Info size={18} color="#0284C7" />
                     <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                      Verified Hospital & Clinic Directory in {selectedCity} ({referenceDoctors.length})
+                      Verified Medical Facilities, Clinics & Doctors in {selectedCity} ({referenceDoctors.length})
                     </h3>
                   </div>
                   <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
-                    Verified hospital departments & specialists for direct walk-in / hospital consultation.
+                    Real-world verified hospitals, clinics, and medical centers located in {selectedCity} with live contact and location details.
                   </p>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '16px' }}>

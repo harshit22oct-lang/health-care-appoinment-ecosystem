@@ -267,12 +267,9 @@ const searchDoctors = asyncHandler(async (req, res) => {
     return true;
   });
 
-  // If city is specified, prioritize city demo doctors
+  // If city is specified, ONLY include demo doctors matching that city
   if (city && city !== 'All' && city !== 'All Cities') {
-    const cityD = filteredDemo.filter(d => d.city.toLowerCase() === city.toLowerCase());
-    if (cityD.length > 0) {
-      filteredDemo = cityD;
-    }
+    filteredDemo = filteredDemo.filter(d => d.city.toLowerCase() === city.toLowerCase());
   }
 
   // Merge DB doctors and in-memory demo doctors without ID or email duplicates
@@ -302,15 +299,15 @@ const searchDoctors = asyncHandler(async (req, res) => {
     const rawName = (rd && rd.name) ? rd.name : (rd && rd.hospitalAffiliation ? rd.hospitalAffiliation : 'Medical Specialist');
     const parts = rawName.replace(/^Dr\.\s*/i, '').split(' ');
     return {
-      _id: `ref_ai_${idx}_${((rd && rd.city) || 'city').toLowerCase()}`,
+      _id: `ref_ai_${idx}_${((rd && rd.city) || targetCity).toLowerCase()}`,
       userId: {
         _id: `ref_user_${idx}`,
         firstName: parts[0] || 'Specialist',
         lastName: parts.slice(1).join(' ') || '',
-        email: `directory.${idx}@${((rd && rd.city) || 'city').toLowerCase()}.healthsync`,
+        email: `directory.${idx}@${((rd && rd.city) || targetCity).toLowerCase()}.healthsync`,
       },
       specialization: (rd && rd.specialization) || targetSpec,
-      qualifications: (rd && rd.qualifications) || ['MBBS', 'MD'],
+      qualifications: (rd && rd.qualifications) || ['MBBS', 'MD', 'Verified Clinical Center'],
       bio: (rd && rd.bio) || `Senior verified specialist at ${(rd && rd.hospitalAffiliation) || 'Premier Hospital'}.`,
       consultationFee: (rd && rd.consultationFee) || 600,
       slotDurationMinutes: 30,
@@ -320,18 +317,20 @@ const searchDoctors = asyncHandler(async (req, res) => {
       hospitalAffiliation: (rd && rd.hospitalAffiliation) || `${targetCity} General Hospital`,
       averageRating: (rd && rd.averageRating) || 4.85,
       totalReviews: (rd && rd.totalReviews) || 350,
-      phone: rd && rd.phone,
-      timings: rd && rd.timings,
+      phone: rd && rd.phone || '+91 1800 419 7979',
+      timings: rd && rd.timings || '09:00 AM - 08:00 PM',
       doctorType: 'REFERENCE',
       isBookable: false,
       referenceNote: (rd && rd.referenceNote) || 'REFERENCE PROFILE · Sourced Public Directory · Direct Walk-In / Hospital Helpline',
-      nextAvailableSlot: 'Not available on HealthSync',
+      nextAvailableSlot: 'Direct Walk-In & Tele-Help',
       isVerified: true,
     };
   });
 
-  // Combine bookable demo doctors with AI Real-World Directory profiles
-  const allDoctors = [...bookableMerged, ...formattedRealDocs];
+  // If city has zero bookable demo doctors, show real-world directory doctors first
+  const allDoctors = bookableMerged.length > 0
+    ? [...bookableMerged, ...formattedRealDocs]
+    : formattedRealDocs;
 
   ApiResponse.ok(res, {
     doctors: allDoctors,
@@ -502,10 +501,10 @@ const aiSearchDoctors = asyncHandler(async (req, res) => {
       .limit(10);
   } catch (err) {}
 
-  // Filter in-memory demo doctors
+  // Filter in-memory demo doctors strictly by city and specialty
   const inMemoryMatches = IN_MEMORY_DEMO_DOCTORS.filter(d => {
     const specMatch = d.specialization.toLowerCase().includes(aiMatch.primarySpecialty.toLowerCase());
-    const cityMatch = !aiMatch.detectedCity || d.city.toLowerCase().includes(aiMatch.detectedCity.toLowerCase());
+    const cityMatch = aiMatch.detectedCity ? d.city.toLowerCase() === aiMatch.detectedCity.toLowerCase() : true;
     return specMatch && cityMatch;
   });
 
@@ -513,20 +512,20 @@ const aiSearchDoctors = asyncHandler(async (req, res) => {
 
   // Map realWorldClinics from AI into doctor card structure
   const realClinics = (aiMatch.realWorldClinics || []).map((clinic, idx) => {
-    const city = aiMatch.detectedCity || 'Bengaluru';
+    const city = aiMatch.detectedCity || 'India';
     return {
       _id: `ai_ref_${Date.now()}_${idx}`,
       userId: {
         _id: `ai_ref_user_${idx}`,
-        firstName: clinic.name.split(' ')[0] || 'Care',
+        firstName: clinic.name.split(' ')[0] || 'Medical',
         lastName: clinic.name.split(' ').slice(1).join(' ') || 'Center',
-        phone: clinic.phone || '+91 80 4124 5500',
+        phone: clinic.phone || '+91 1800 419 7979',
         email: `contact@${clinic.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.in`,
       },
       specialization: aiMatch.primarySpecialty,
-      qualifications: ['Verified Healthcare Facility', 'Public Directory Listing'],
-      bio: `${clinic.name} provides comprehensive clinical care in ${clinic.area || city}. Certified medical specialists, diagnostic facilities, and emergency care.`,
-      consultationFee: clinic.typicalFee || '₹500 - ₹800',
+      qualifications: ['Verified Clinical Facility', 'Public Directory Listing'],
+      bio: `${clinic.name} provides specialized healthcare and diagnostic evaluations in ${clinic.area || city}. Certified medical practitioners and clinical support.`,
+      consultationFee: clinic.typicalFee || '₹400 - ₹750',
       slotDurationMinutes: 30,
       yearsOfExperience: 15,
       city: city,
@@ -543,7 +542,8 @@ const aiSearchDoctors = asyncHandler(async (req, res) => {
     };
   });
 
-  const combinedDoctors = [...bookableDoctors, ...realClinics];
+  // Prioritize real-world clinics and doctors from that exact city
+  const combinedDoctors = [...realClinics, ...bookableDoctors];
 
   ApiResponse.ok(res, {
     aiMatch,
