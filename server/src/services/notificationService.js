@@ -187,9 +187,9 @@ const templates = {
     chiefComplaint = 'General Clinical Consultation',
     urgencyLevel = 'Low',
     suggestedDoctorQuestions = [
-      'How long have you noticed these specific symptoms?',
-      'Are you currently taking any OTC or prescribed medications?',
-      'Do you have any related allergies or past medical history?'
+      'What is the likely underlying cause of my symptoms and do I need any lab tests?',
+      'Are there specific foods, hydration guidelines, or daily activities I should follow or avoid?',
+      'What warning signs or symptom changes should prompt me to seek immediate follow-up care?'
     ],
   }) => {
     const formattedDate = new Date(scheduledAt).toLocaleString('en-IN', {
@@ -296,17 +296,19 @@ const templates = {
                   </tr>
                 </table>
 
-                <!-- ── LINEAR-STYLE AI CLINICAL NOTE ── -->
-                <div style="border-left: 2px solid #0284C7; padding-left: 16px; margin-bottom: 32px;">
-                  <div style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 4px; display: flex; align-items: center;">
-                    Gemini AI Clinical Summary · <span style="font-weight: 500; color: #64748B; margin-left: 4px;">${urgencyLevel} Urgency</span>
+                <!-- ── PATIENT-ORIENTED SMART PRE-VISIT CHECKLIST ── -->
+                <div style="background-color: #F0F9FF; border: 1px solid #BAE6FD; border-radius: 8px; padding: 18px 20px; margin-bottom: 32px;">
+                  <div style="font-size: 12px; font-weight: 800; color: #0369A1; margin-bottom: 4px; display: flex; align-items: center;">
+                    🤖 Smart Pre-Visit Checklist (Powered by Gemini AI) · <span style="font-weight: 600; color: #0284C7; margin-left: 4px;">${urgencyLevel} Priority</span>
                   </div>
-                  <div style="font-size: 13px; color: #475569; line-height: 1.5; margin-bottom: 8px;">
-                    ${chiefComplaint}
+                  <div style="font-size: 13px; color: #334155; line-height: 1.5; margin-bottom: 12px;">
+                    <strong>Reported Symptoms:</strong> ${chiefComplaint}
                   </div>
-                  <div style="font-size: 11px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px;">Suggested Briefing Points:</div>
-                  <ul style="margin: 0; padding-left: 16px; font-size: 12px; color: #475569; line-height: 1.6;">
-                    ${suggestedDoctorQuestions.map(q => `<li>${q}</li>`).join('')}
+                  <div style="font-size: 11px; font-weight: 700; color: #0369A1; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;">
+                    Suggested Questions to Ask Dr. ${doctorName}:
+                  </div>
+                  <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: #334155; line-height: 1.6;">
+                    ${suggestedDoctorQuestions.map(q => `<li style="margin-bottom: 4px;">${q}</li>`).join('')}
                   </ul>
                 </div>
 
