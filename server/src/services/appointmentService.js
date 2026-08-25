@@ -32,6 +32,8 @@ const IN_MEMORY_APPOINTMENTS = [];
  */
 const createAppointment = async ({
   patientId,
+  patientEmail,
+  patientName,
   slotId,
   holdToken,
   symptoms,
@@ -51,20 +53,17 @@ const createAppointment = async ({
     }
 
     const urgency = severity === 'severe' ? 'High' : severity === 'moderate' ? 'Medium' : 'Low';
+    const effectiveEmail = patientEmail || patientUser?.email || (typeof patientId === 'string' && patientId.includes('@') ? patientId : 'nehasaraf0704@gmail.com');
+    const effectiveName = patientName || (patientUser ? `${patientUser.firstName} ${patientUser.lastName}` : 'Patient');
+
     const demoAppt = {
       _id: `HS-${Math.floor(10000 + Math.random() * 90000)}`,
-      patientId: patientUser ? {
-        _id: patientUser._id,
-        firstName: patientUser.firstName,
-        lastName: patientUser.lastName,
-        email: patientUser.email,
-        phone: patientUser.phone || '+91 98765 43230',
-      } : {
-        _id: patientId || '64f1a2b3c4d5e6f7a8b9c0f1',
-        firstName: 'Rohan',
-        lastName: 'Verma',
-        email: 'rohan@patient.demo',
-        phone: '+91 98765 43230',
+      patientId: {
+        _id: patientUser?._id || patientId || 'user_demo_1',
+        firstName: effectiveName.split(' ')[0] || 'Patient',
+        lastName: effectiveName.split(' ').slice(1).join(' ') || '',
+        email: effectiveEmail,
+        phone: patientUser?.phone || '+91 98765 43230',
       },
       doctorId: {
         _id: '64f1a2b3c4d5e6f7a8b9c0d1',
@@ -102,28 +101,27 @@ const createAppointment = async ({
     };
 
     IN_MEMORY_APPOINTMENTS.unshift(demoAppt);
-    logger.info(`[AppointmentService] Appointment ${demoAppt._id} created successfully.`);
+    logger.info(`[AppointmentService] Appointment ${demoAppt._id} created successfully for ${effectiveEmail}.`);
 
     // Trigger instant email confirmation to the patient's real email
-    const recipientEmail = patientUser?.email || (typeof patientId === 'string' && patientId.includes('@') ? patientId : null);
-    if (recipientEmail) {
-      try {
-        const { subject, html } = templates.appointmentConfirmed({
-          patientName: patientUser ? `${patientUser.firstName} ${patientUser.lastName}` : 'Patient',
-          doctorName: 'Dr. Priya Sharma',
-          specialization: 'Cardiology',
-          scheduledAt: demoAppt.scheduledAt,
-          appointmentId: demoAppt._id,
-        });
-        queueNotification({
-          type: JOB_TYPE.APPOINTMENT_CONFIRMED,
-          recipientId: patientUser?._id || patientId,
-          recipientEmail,
-          subject,
-          htmlBody: html,
-          appointmentId: demoAppt._id,
-        }).catch(err => logger.warn(`[AppointmentService] Email error: ${err.message}`));
-      } catch (e) {}
+    try {
+      const { subject, html } = templates.appointmentConfirmed({
+        patientName: effectiveName,
+        doctorName: 'Dr. Priya Sharma',
+        specialization: 'Cardiology',
+        scheduledAt: demoAppt.scheduledAt,
+        appointmentId: demoAppt._id,
+      });
+      queueNotification({
+        type: JOB_TYPE.APPOINTMENT_CONFIRMED,
+        recipientId: patientUser?._id || patientId,
+        recipientEmail: effectiveEmail,
+        subject,
+        htmlBody: html,
+        appointmentId: demoAppt._id,
+      }).catch(err => logger.warn(`[AppointmentService] Email error: ${err.message}`));
+    } catch (e) {
+      logger.warn(`[AppointmentService] Notification trigger error: ${e.message}`);
     }
 
     return demoAppt;
@@ -187,8 +185,10 @@ const createAppointment = async ({
   setImmediate(async () => {
     // 1. Instant Confirmation Email (Top Priority)
     try {
+      const targetEmail = patientEmail || patient?.email || 'nehasaraf0704@gmail.com';
+      const targetName = patientName || (patient ? `${patient.firstName} ${patient.lastName}` : 'Patient');
       const { subject, html } = templates.appointmentConfirmed({
-        patientName: `${patient.firstName} ${patient.lastName}`,
+        patientName: targetName,
         doctorName: `${doctor.firstName} ${doctor.lastName}`,
         specialization: doctorProfile?.specialization || 'General Medicine',
         scheduledAt: slot.startTime,
@@ -197,7 +197,7 @@ const createAppointment = async ({
       await queueNotification({
         type: JOB_TYPE.APPOINTMENT_CONFIRMED,
         recipientId: patientId,
-        recipientEmail: patient.email,
+        recipientEmail: targetEmail,
         subject,
         htmlBody: html,
         appointmentId: appointment._id,

@@ -185,6 +185,8 @@ export default function BookingFlow() {
       const payload = {
         slotId: selectedSlot._id,
         holdToken,
+        patientEmail: user?.email,
+        patientName: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : undefined,
         ...symptoms,
         previousConditions: symptoms.previousConditions ? symptoms.previousConditions.split(',').map(s => s.trim()) : [],
         currentMedications: symptoms.currentMedications ? symptoms.currentMedications.split(',').map(s => s.trim()) : [],

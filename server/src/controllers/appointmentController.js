@@ -26,6 +26,8 @@ const postVisitValidation = [
 const createAppointment = asyncHandler(async (req, res) => {
   const appointment = await appointmentService.createAppointment({
     patientId: req.user._id,
+    patientEmail: req.user.email,
+    patientName: `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim() || req.user.name || 'Patient',
     ...req.body,
   });
   ApiResponse.created(res, appointment, 'Appointment booked successfully. AI analysis is running.');
